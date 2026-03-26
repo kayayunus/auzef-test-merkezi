@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { BarChart3, TrendingUp, Target } from 'lucide-react';
+import { BarChart3, TrendingUp, Target, Trash2 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
@@ -20,6 +20,13 @@ export default function Stats() {
 
     return { totalExams, totalQuestions, totalCorrect, totalWrong, overallSuccess, recentTests };
   }, [completedTests]);
+
+  const handleResetProgress = () => {
+    if (window.confirm("Tüm ilerlemen, başarı puanların ve yanlış cevapladığın sorular silinecek. Emin misin?")) {
+      localStorage.clear();
+      window.location.reload();
+    }
+  };
 
   return (
     <div className="p-6 max-w-lg mx-auto pb-32">
@@ -111,6 +118,16 @@ export default function Stats() {
              'Başlangıçlar hep zordur. Yanlışların senin en iyi öğretmenin, pes etme!'}
           </p>
         </div>
+      </div>
+
+      <div className="mt-8 pt-6 border-t border-gray-200/60 pb-4">
+        <button 
+          onClick={handleResetProgress}
+          className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-red-50 text-red-600 font-bold hover:bg-red-100 transition-colors shadow-sm active:scale-[0.98]"
+        >
+          <Trash2 size={20} />
+          İlerlemeyi Sıfırla
+        </button>
       </div>
     </div>
   );

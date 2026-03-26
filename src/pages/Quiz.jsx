@@ -7,7 +7,7 @@ import { useAppContext } from '../context/AppContext';
 export default function Quiz() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { saveTestResult, addMistake } = useAppContext();
+  const { saveTestResult, addMistake, removeMistake } = useAppContext();
   
   const stateData = location.state;
   const questions = stateData?.questions || [];
@@ -44,6 +44,8 @@ export default function Quiz() {
     const isCorrect = opt === question.cevap;
     if (isCorrect) {
       setScore(s => s + 1);
+      // Remove from mistakes if it was previously saved (this ensures 'Yanlışlarım' naturally decreases as the user learns)
+      removeMistake(question.ders, question.soru_no, question.yil);
     } else {
       addMistake(question);
     }

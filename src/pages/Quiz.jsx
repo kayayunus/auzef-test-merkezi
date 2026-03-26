@@ -155,7 +155,7 @@ export default function Quiz() {
         </div>
       </div>
 
-      {/* Main Content Area: 75% (30% Question, 45% Options) */}
+      {/* Main Content Area: 75% (25% Question, 50% Options) */}
       <div className="h-[75dvh] w-full flex flex-col overflow-hidden relative z-0">
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.div
@@ -166,19 +166,24 @@ export default function Quiz() {
             transition={{ type: 'spring', stiffness: 350, damping: 35 }}
             className="flex flex-col w-full h-full"
           >
-            {/* Question Box: 30% */}
-            <div className="h-[30dvh] w-full px-3 py-2 flex-none overflow-hidden relative">
-              <div className="bg-white rounded-2xl w-full h-full p-3 sm:p-5 shadow-[0_2px_15px_rgba(0,0,0,0.03)] border border-gray-100 border-b-4 overflow-y-auto flex items-center justify-center hide-scrollbar">
-                <h2 className={`font-bold text-gray-800 leading-snug font-sans text-center ${question.soru.length > 300 ? 'text-[11px]' : question.soru.length > 200 ? 'text-xs' : question.soru.length > 100 ? 'text-[13px] sm:text-sm' : 'text-[15px] sm:text-[17px]'}`}>
-                  {question.soru}
+            {/* Question Box: 25% */}
+            <div className="h-[25dvh] w-full px-3 py-2 flex-none overflow-hidden relative">
+              <div className="bg-white rounded-2xl w-full h-full p-2.5 sm:p-4 shadow-[0_2px_15px_rgba(0,0,0,0.03)] border border-gray-100 border-b-4 flex items-center justify-center overflow-hidden">
+                <h2 className={`font-bold text-gray-800 leading-tight font-sans text-center w-full max-h-full overflow-hidden flex items-center justify-center ${question.soru.length > 300 ? 'text-[10px]' : question.soru.length > 200 ? 'text-[11px]' : question.soru.length > 100 ? 'text-[12px] sm:text-[13px]' : 'text-[14px] sm:text-[15px]'}`}>
+                  <span className="line-clamp-6">{question.soru}</span>
                 </h2>
               </div>
             </div>
 
-            {/* Options Area: 45% */}
-            <div className="h-[45dvh] w-full px-3 pb-2 overflow-y-auto hide-scrollbar flex-none">
-              <div className="space-y-1.5 sm:space-y-2 w-full flex-none">
-              {options.map((opt) => {
+            {/* Options Area: 50% */}
+            <div className="h-[50dvh] w-full px-3 pb-2 overflow-hidden flex-none">
+              <div className="flex flex-col h-full gap-1.5 sm:gap-2 w-full">
+              {(() => {
+                // Calculate dynamic sizing for options based on max length
+                const maxOptLen = Math.max(...options.map(o => (question[o] || '').length));
+                const isLongOptions = maxOptLen > 65; // ~2 lines on mobile
+                
+                return options.map((opt) => {
                 const isSelected = selectedAnswer === opt;
                 const isCorrectAnswer = opt === question.cevap;
                 
@@ -210,58 +215,50 @@ export default function Quiz() {
                     disabled={!!selectedAnswer}
                     onClick={() => handleSelect(opt)}
                     whileTap={!selectedAnswer ? { scale: 0.98 } : {}}
-                    className={`w-full text-left py-2 px-3 sm:py-2.5 sm:px-4 rounded-xl sm:rounded-2xl transition-all duration-300 flex items-center gap-2.5 sm:gap-3 ${btnStyle} ${animationClass}`}
+                    className={`flex-1 w-full text-left px-3 sm:px-4 rounded-xl sm:rounded-2xl transition-all duration-300 flex items-center gap-2.5 sm:gap-3 ${btnStyle} ${animationClass}`}
                   >
                     <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-[13px] sm:text-[14px] flex-shrink-0 transition-colors shadow-sm ${
                       (isSelected || (selectedAnswer && isCorrectAnswer) || (isStudyMode && isCorrectAnswer) || (showAnswerHint && isCorrectAnswer)) ? 'bg-white/25 text-white shadow-none' : 'bg-gray-100 text-gray-500 border border-gray-200'
                     }`}>
                       {((selectedAnswer || showAnswerHint || isStudyMode) && isCorrectAnswer) ? <Check size={16} className={(isSelected || isStudyMode) ? "text-white" : "text-green-500"} strokeWidth={3} /> : opt}
                     </div>
-                    <span className="font-semibold text-[13px] sm:text-[14px] flex-1 leading-snug break-words">
+                    <span className={`font-semibold flex-1 leading-snug break-words line-clamp-3 ${isLongOptions ? 'text-[11.5px] sm:text-[12px]' : 'text-[13px] sm:text-[14px]'}`}>
                       {question[opt]}
                     </span>
                     
                     {selectedAnswer && isSelected && !isCorrectAnswer && (
-                      <X size={24} className="text-white shrink-0" strokeWidth={3} />
+                      <X size={20} className="text-white shrink-0 ml-1" strokeWidth={3} />
                     )}
                   </motion.button>
                 );
-              })}
+              });
+              })()}
 
-              {!selectedAnswer && !showAnswerHint && (
-                <button 
-                  onClick={() => setShowAnswerHint(true)} 
-                  className="mt-3 sm:mt-4 w-full py-3 rounded-2xl bg-blue-50/70 text-blue-600 font-extrabold text-[14px] active:bg-blue-100 transition-colors border border-blue-100 flex justify-center items-center gap-2"
-                >
-                  Cevabı Gör
-                </button>
-              )}
               </div>
             </div>
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Sticky Next Button Area: 17% */}
+      {/* Sticky Action Button Area: 17% */}
       <div className="h-[17dvh] w-full flex-none relative z-[60] bg-gray-50/50">
-        <AnimatePresence>
-          {(selectedAnswer || isStudyMode) && (
-            <motion.div 
-              initial={{ y: 150 }}
-              animate={{ y: 0 }}
-              exit={{ y: 150 }}
-              transition={{ type: "spring", stiffness: 450, damping: 30 }}
-              className="absolute inset-0 p-3 sm:p-4 bg-white/95 backdrop-blur-xl border-t border-gray-100 shadow-[0_-15px_40px_rgba(0,0,0,0.06)] flex items-center justify-center rounded-t-[20px] sm:rounded-t-[30px]"
+        <div className="absolute inset-0 p-3 sm:p-4 bg-white/95 backdrop-blur-xl border-t border-gray-100 shadow-[0_-15px_40px_rgba(0,0,0,0.06)] flex items-center justify-center rounded-t-[20px] sm:rounded-t-[30px]">
+          {(!selectedAnswer && !showAnswerHint && !isStudyMode) ? (
+            <button 
+              onClick={() => setShowAnswerHint(true)} 
+              className="w-full h-full max-h-[56px] sm:max-h-[60px] bg-blue-50/70 text-blue-600 font-extrabold text-[15px] sm:text-[16px] rounded-[16px] active:scale-[0.98] transition-all border border-blue-100 flex justify-center items-center gap-2"
             >
-              <button
-                onClick={handleNext}
-                className="w-full h-full max-h-[56px] sm:max-h-[60px] bg-gray-900 text-white font-extrabold text-[15px] sm:text-[16px] rounded-[16px] shadow-xl shadow-gray-900/20 active:scale-[0.98] transition-all"
-              >
-                {currentIndex < questions.length - 1 ? "Sonraki Soru" : "Testi Bitir"}
-              </button>
-            </motion.div>
+              Cevabı Gör
+            </button>
+          ) : (
+            <button
+              onClick={handleNext}
+              className="w-full h-full max-h-[56px] sm:max-h-[60px] bg-gray-900 text-white font-extrabold text-[15px] sm:text-[16px] rounded-[16px] shadow-xl shadow-gray-900/20 active:scale-[0.98] transition-all"
+            >
+              {currentIndex < questions.length - 1 ? "Sonraki Soru" : "Testi Bitir"}
+            </button>
           )}
-        </AnimatePresence>
+        </div>
       </div>
     </div>
   );

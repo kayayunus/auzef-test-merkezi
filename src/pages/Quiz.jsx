@@ -55,10 +55,11 @@ export default function Quiz() {
       setCurrentIndex(c => c + 1);
     } else {
       saveTestResult({
-        ders: ders,
-        score,
-        totalQuestions: questions.length,
-        date: new Date().toISOString()
+        dersAdi: ders, // Map from internal "ders" to requested "dersAdi"
+        puan: Math.round((score / questions.length) * 100),
+        dogruSayisi: score,
+        toplamSoru: questions.length,
+        tarih: new Date().toISOString()
       });
       setIsFinished(true);
     }
@@ -129,7 +130,7 @@ export default function Quiz() {
       </AnimatePresence>
 
       {/* Header */}
-      <div className="px-4 py-3 shrink-0 relative z-10 flex items-center gap-4 bg-white/60 backdrop-blur-md border-b border-gray-100">
+      <div className="px-4 py-3 flex-none shrink-0 relative z-10 flex items-center gap-4 bg-white/60 backdrop-blur-md border-b border-gray-100">
         <button 
           onClick={handleExit} 
           className="p-2.5 bg-white rounded-full text-gray-600 hover:text-red-500 hover:bg-red-50 transition-all shadow-sm"
@@ -155,7 +156,7 @@ export default function Quiz() {
       </div>
 
       {/* Main Content Area - Scrollable but highly compacted */}
-      <div className="flex-1 px-4 py-4 flex flex-col relative z-0 overflow-hidden hide-scrollbar">
+      <div className="flex-1 overflow-hidden px-4 py-4 flex flex-col relative z-0 hide-scrollbar">
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.div
             key={currentIndex}
@@ -166,8 +167,8 @@ export default function Quiz() {
             className="flex flex-col w-full h-full justify-center"
           >
             {/* Question Box */}
-            <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-[0_2px_15px_rgba(0,0,0,0.03)] border border-gray-100 mb-4 border-b-4 flex-shrink min-h-[80px] flex items-center justify-center">
-              <h2 className="text-[clamp(0.9rem,2.8vh,1.15rem)] font-bold text-gray-800 leading-snug font-sans text-center">
+            <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-[0_2px_15px_rgba(0,0,0,0.03)] border border-gray-100 mb-4 border-b-4 flex-1 overflow-y-auto flex items-center justify-center min-h-[100px] max-h-[40vh] hide-scrollbar">
+              <h2 className={`font-bold text-gray-800 leading-snug font-sans text-center ${question.soru.length > 200 ? 'text-sm' : 'text-base sm:text-lg'}`}>
                 {question.soru}
               </h2>
             </div>
@@ -193,6 +194,9 @@ export default function Quiz() {
                   } else {
                     btnStyle = "bg-white border-gray-50 text-gray-300 opacity-60";
                   }
+                } else if (isStudyMode && isCorrectAnswer) {
+                   btnStyle = "bg-green-500 border-green-500 text-white shadow-xl shadow-green-500/20 z-10 relative";
+                   animationClass = "scale-[1.02]";
                 } else if (showAnswerHint && isCorrectAnswer) {
                    btnStyle = "bg-green-50 border-green-500 text-green-700 shadow-md ring-2 ring-green-500 ring-offset-2 scale-[1.01] z-10 relative";
                 }
@@ -206,9 +210,9 @@ export default function Quiz() {
                     className={`w-full text-left py-3 px-4 sm:py-3.5 sm:px-4 rounded-2xl transition-all duration-300 flex items-center gap-3 ${btnStyle} ${animationClass}`}
                   >
                     <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-[15px] flex-shrink-0 transition-colors shadow-sm ${
-                      (isSelected || (selectedAnswer && isCorrectAnswer) || (showAnswerHint && isCorrectAnswer)) ? 'bg-white/25 text-white shadow-none' : 'bg-gray-100 text-gray-500 border border-gray-200'
+                      (isSelected || (selectedAnswer && isCorrectAnswer) || (isStudyMode && isCorrectAnswer) || (showAnswerHint && isCorrectAnswer)) ? 'bg-white/25 text-white shadow-none' : 'bg-gray-100 text-gray-500 border border-gray-200'
                     }`}>
-                      {((selectedAnswer || showAnswerHint) && isCorrectAnswer) ? <Check size={20} className={isSelected ? "text-white" : "text-green-500"} strokeWidth={3} /> : opt}
+                      {((selectedAnswer || showAnswerHint || isStudyMode) && isCorrectAnswer) ? <Check size={20} className={(isSelected || isStudyMode) ? "text-white" : "text-green-500"} strokeWidth={3} /> : opt}
                     </div>
                     <span className="font-semibold text-[14px] sm:text-[15px] flex-1 leading-snug break-words">
                       {question[opt]}
@@ -242,7 +246,7 @@ export default function Quiz() {
             animate={{ y: 0 }}
             exit={{ y: 150 }}
             transition={{ type: "spring", stiffness: 450, damping: 30 }}
-            className={`absolute bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-xl border-t border-gray-100 shadow-[0_-15px_40px_rgba(0,0,0,0.06)] pb-safe z-50 rounded-t-[30px] ${isStudyMode && !selectedAnswer ? 'py-3' : 'py-4'}`}
+            className={`absolute bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-xl border-t border-gray-100 shadow-[0_-15px_40px_rgba(0,0,0,0.06)] flex-none pb-safe z-50 rounded-t-[30px] ${isStudyMode && !selectedAnswer ? 'py-3' : 'py-4'}`}
           >
             <button
               onClick={handleNext}

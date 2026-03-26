@@ -8,18 +8,17 @@ export default function Stats() {
 
   const stats = useMemo(() => {
     const totalExams = completedTests.length;
-    const totalQuestions = completedTests.reduce((acc, curr) => acc + curr.totalQuestions, 0);
-    const totalCorrect = completedTests.reduce((acc, curr) => acc + curr.score, 0);
+    const totalQuestions = completedTests.reduce((acc, curr) => acc + (curr.totalQuestions || curr.toplamSoru || 0), 0);
+    const totalCorrect = completedTests.reduce((acc, curr) => acc + (curr.score ?? curr.dogruSayisi ?? 0), 0);
+    const totalWrong = totalQuestions > 0 ? totalQuestions - totalCorrect : 0;
     const overallSuccess = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
 
-    const recentTests = [...completedTests].sort((a,b) => new Date(a.date) - new Date(b.date)).slice(-7);
-    const chartData = recentTests.map((t, index) => ({
-      name: `Sınav ${index + 1}`,
-      basari: Math.round((t.score / t.totalQuestions) * 100),
-      ders: t.ders
-    }));
+    const recentTests = [...completedTests]
+      .sort((a,b) => new Date(a.date || a.tarih || 0) - new Date(b.date || b.tarih || 0))
+      .slice(-7)
+      .reverse(); // Show newest at the top
 
-    return { totalExams, totalQuestions, overallSuccess, chartData };
+    return { totalExams, totalQuestions, totalCorrect, totalWrong, overallSuccess, recentTests };
   }, [completedTests]);
 
   return (
@@ -49,35 +48,53 @@ export default function Stats() {
             <span className="text-xl font-bold mb-1">%</span>
           </div>
         </div>
+
+        <div className="glass rounded-2xl p-5 ring-1 ring-white/50 col-span-2 relative overflow-hidden flex items-center justify-between">
+          <div>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Doğru / Yanlış</p>
+            <div className="flex items-center gap-3 mt-1">
+              <span className="text-2xl font-black text-green-500">{stats.totalCorrect} D</span>
+              <span className="text-gray-300 font-light text-xl">|</span>
+              <span className="text-2xl font-black text-red-500">{stats.totalWrong} Y</span>
+            </div>
+          </div>
+          <Target className="text-gray-100" size={48} strokeWidth={1} />
+        </div>
       </div>
 
       <div className="glass rounded-3xl p-6 mb-8 ring-1 ring-white/60">
         <div className="flex items-center gap-2 mb-6">
           <TrendingUp className="text-gray-400" size={20} />
-          <h2 className="text-lg font-bold text-gray-800">Son Sınavların (Başarı %)</h2>
+          <h2 className="text-lg font-bold text-gray-800">Son Sınavlar</h2>
         </div>
         
-        {stats.chartData.length > 0 ? (
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <XAxis dataKey="name" tick={{fontSize: 12, fill: '#9ca3af'}} axisLine={false} tickLine={false} />
-                <YAxis tick={{fontSize: 12, fill: '#9ca3af'}} axisLine={false} tickLine={false} domain={[0, 100]} />
-                <Tooltip 
-                  cursor={{fill: 'transparent'}}
-                  contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', fontWeight: 'bold'}}
-                />
-                <Bar dataKey="basari" radius={[6, 6, 6, 6]} barSize={32}>
-                  {stats.chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.basari > 70 ? '#4ade80' : entry.basari > 40 ? '#fbbf24' : '#f87171'} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+        {stats.recentTests.length > 0 ? (
+          <div className="space-y-3">
+            {stats.recentTests.map((test, i) => {
+               const ders = test.ders || test.dersAdi || 'Bilinmeyen Ders';
+               const puan = test.puan !== undefined ? test.puan : (test.totalQuestions ? Math.round(((test.score || 0) / test.totalQuestions) * 100) : 0);
+               const dogru = test.dogruSayisi ?? test.score ?? 0;
+               const toplam = test.toplamSoru ?? test.totalQuestions ?? 0;
+               const dateStr = new Date(test.tarih || test.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+
+               return (
+                 <div key={i} className="flex items-center justify-between p-3.5 rounded-2xl bg-white/60 border border-white hover:bg-white transition-colors shadow-sm">
+                   <div className="flex items-center gap-3">
+                     <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-sm ${puan > 70 ? 'bg-green-100 text-green-600 ring-1 ring-green-200' : puan > 40 ? 'bg-yellow-100 text-yellow-600 ring-1 ring-yellow-200' : 'bg-red-100 text-red-600 ring-1 ring-red-200'}`}>
+                       {puan}
+                     </div>
+                     <div>
+                       <h4 className="font-bold text-gray-800 text-[14px] leading-tight line-clamp-1 mb-1">{ders}</h4>
+                       <p className="text-[12px] font-semibold text-gray-500">{dateStr} • {dogru}/{toplam} Doğru</p>
+                     </div>
+                   </div>
+                 </div>
+               );
+            })}
           </div>
         ) : (
           <div className="h-48 flex items-center justify-center text-gray-400 font-medium text-sm text-center bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
-            Henüz yeterli veri yok.<br/>Sınav çözdükçe grafik burada belirecek.
+            Henüz yeterli veri yok.<br/>Sınav çözdükçe liste burada belirecek.
           </div>
         )}
       </div>

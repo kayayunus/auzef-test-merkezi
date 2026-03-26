@@ -53,7 +53,7 @@ export default function Home() {
         <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
           AUZEF <span className="text-transparent bg-clip-text bg-gradient-to-r from-auzef to-auzef-light">Hazırlık</span>
         </h1>
-        <p className="text-gray-500 mt-1 font-medium">Hoş geldin. Bugün neler çalışıyoruz?</p>
+        <p className="text-gray-500 mt-1 font-medium">Hoş geldin sevgilim. Hadi birlikte çalışalım 🤍</p>
       </header>
 
       <div className="glass rounded-3xl p-6 mb-10 overflow-hidden relative shadow-xl shadow-auzef/10 border-0 ring-1 ring-white/50">

@@ -12,11 +12,14 @@ export default function Quiz() {
   const stateData = location.state;
   const questions = stateData?.questions || [];
   const ders = stateData?.ders || 'Bilinmeyen Ders';
+  const isStudyMode = stateData?.isStudyMode || false;
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
+  const [showAnswerHint, setShowAnswerHint] = useState(isStudyMode);
+  const [showExitModal, setShowExitModal] = useState(false);
 
   useEffect(() => {
     if (!questions || questions.length === 0) {
@@ -24,9 +27,14 @@ export default function Quiz() {
     }
   }, [questions, navigate]);
 
+  useEffect(() => {
+    setShowAnswerHint(isStudyMode);
+  }, [currentIndex, isStudyMode]);
+
   if (!questions || questions.length === 0) return null;
 
   const question = questions[currentIndex];
+  // Ensure we sort options alphabetically just in case, but usually they are A B C D E
   const options = ['A', 'B', 'C', 'D', 'E'].filter(opt => question[opt]);
 
   const handleSelect = (opt) => {
@@ -56,25 +64,35 @@ export default function Quiz() {
     }
   };
 
+  const handleExit = () => {
+    setShowExitModal(true);
+  };
+  const confirmExit = () => {
+    navigate('/');
+  };
+  const cancelExit = () => {
+    setShowExitModal(false);
+  };
+
   if (isFinished) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
+      <div className="flex flex-col items-center justify-center min-h-[100dvh] p-6 text-center bg-gray-50">
         <motion.div 
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           className="glass rounded-3xl p-8 max-w-sm w-full"
         >
-          <div className="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-green-500/20 shadow-lg">
             <Check size={40} strokeWidth={3} />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Sınav Tamamlandı!</h2>
-          <p className="text-gray-500 mb-6">{questions.length} soruda {score} doğru yaptınız.</p>
-          <div className="text-5xl font-black text-auzef mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Sınav Tamamlandı!</h2>
+          <p className="text-gray-500 mb-6 font-medium">{questions.length} soruda {score} doğru yaptınız.</p>
+          <div className="text-5xl font-black text-auzef mb-8 tracking-tighter">
             {Math.round((score / questions.length) * 100)}%
           </div>
           <button 
             onClick={() => navigate('/')}
-            className="w-full bg-gray-900 text-white font-bold py-4 rounded-xl shadow-lg hover:-translate-y-1 transition-transform"
+            className="w-full bg-gray-900 text-white font-black py-4 rounded-xl shadow-xl hover:-translate-y-1 transition-transform"
           >
             Ana Sayfaya Dön
           </button>
@@ -84,57 +102,99 @@ export default function Quiz() {
   }
 
   return (
-    <div className="max-w-xl mx-auto min-h-[100dvh] flex flex-col pt-4 overflow-hidden relative">
-      <div className="px-6 mb-6 shrink-0 relative z-10">
-        <div className="flex justify-between items-center text-sm font-semibold text-gray-500 mb-2">
-          <span>Soru {currentIndex + 1} / {questions.length}</span>
-          <span className="text-auzef truncate max-w-[150px]">{ders}</span>
-        </div>
-        <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-          <motion.div 
-            className="bg-auzef h-1.5 rounded-full"
-            initial={{ width: 0 }}
-            animate={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
-            transition={{ duration: 0.5 }}
-          />
+    <div className="max-w-xl mx-auto h-[100dvh] flex flex-col overflow-hidden relative bg-gray-50/50">
+      
+      {/* Exit Modal */}
+      <AnimatePresence>
+        {showExitModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] z-[100] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl"
+            >
+              <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5">
+                <X size={32} strokeWidth={2.5}/>
+              </div>
+              <h3 className="text-2xl font-black text-gray-900 mb-2">Sınavdan Çıkış</h3>
+              <p className="text-gray-500 font-medium mb-8">Sınavdan çıkmak istediğine emin misin? Seçtiğin cevaplar kaydedilmeyecek.</p>
+              <div className="flex flex-col gap-3">
+                <button onClick={confirmExit} className="w-full py-4 rounded-2xl font-extrabold text-white bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/20 transition-colors">Çıkış Yap</button>
+                <button onClick={cancelExit} className="w-full py-4 rounded-2xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">İptal</button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Header */}
+      <div className="px-4 py-3 shrink-0 relative z-10 flex items-center gap-4 bg-white/60 backdrop-blur-md border-b border-gray-100">
+        <button 
+          onClick={handleExit} 
+          className="p-2.5 bg-white rounded-full text-gray-600 hover:text-red-500 hover:bg-red-50 transition-all shadow-sm"
+        >
+          <X size={20} strokeWidth={3} />
+        </button>
+        <div className="flex-1 pr-2">
+          <div className="flex justify-between items-center mb-2">
+            <span className="bg-auzef text-white text-[11px] font-black px-3 py-1 rounded-full shadow-sm tracking-wide">
+              SORU {currentIndex + 1} / {questions.length}
+            </span>
+            <span className="text-gray-600 text-[13px] font-bold truncate ml-2 max-w-[160px]">{ders}</span>
+          </div>
+          <div className="w-full bg-gray-200/60 rounded-full h-1.5 overflow-hidden">
+            <motion.div 
+              className="bg-gradient-to-r from-auzef to-auzef-light h-1.5 rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
+              transition={{ duration: 0.5 }}
+            />
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 px-4 flex flex-col relative z-0">
+      {/* Main Content Area - Scrollable */}
+      <div className="flex-1 px-4 pt-6 pb-32 flex flex-col relative z-0 overflow-y-auto hide-scrollbar">
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.div
             key={currentIndex}
-            initial={{ x: '100%', opacity: 0, scale: 0.95 }}
+            initial={{ x: '100%', opacity: 0, scale: 0.98 }}
             animate={{ x: 0, opacity: 1, scale: 1 }}
-            exit={{ x: '-100%', opacity: 0, scale: 0.95 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="glass rounded-3xl p-6 sm:p-8 flex-1 flex flex-col shadow-sm w-full"
-            style={{ minHeight: '400px', marginBottom: '120px' }}
+            exit={{ x: '-100%', opacity: 0, scale: 0.98 }}
+            transition={{ type: 'spring', stiffness: 350, damping: 35 }}
+            className="flex flex-col w-full"
           >
-            <h2 className="text-lg sm:text-xl font-bold text-gray-800 leading-relaxed mb-6 flex-1 break-words">
-              {question.soru}
-            </h2>
+            {/* Question Box */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-[0_2px_15px_rgba(0,0,0,0.03)] border border-gray-100 mb-6 border-b-4">
+              <h2 className="text-[1.15rem] sm:text-xl font-bold text-gray-800 leading-relaxed font-sans">
+                {question.soru}
+              </h2>
+            </div>
 
-            <div className="space-y-3">
+            {/* Options */}
+            <div className="space-y-4 w-full">
               {options.map((opt) => {
                 const isSelected = selectedAnswer === opt;
                 const isCorrectAnswer = opt === question.cevap;
                 
-                let btnStyle = "bg-white border-gray-100 text-gray-700 hover:border-auzef/40 hover:bg-gray-50/50";
+                let btnStyle = "bg-white border-white text-gray-700 hover:border-gray-200 shadow-sm border-2";
                 let animationClass = "";
 
                 if (selectedAnswer) {
                   if (isSelected && isCorrectAnswer) {
-                    btnStyle = "bg-green-500 border-green-500 text-white shadow-[0_0_30px_rgba(34,197,94,0.3)] z-10 relative";
+                    btnStyle = "bg-green-500 border-green-500 text-white shadow-xl shadow-green-500/20 z-10 relative";
                     animationClass = "scale-[1.02]";
                   } else if (isSelected && !isCorrectAnswer) {
-                    btnStyle = "bg-red-500 border-red-500 text-white shadow-[0_0_30px_rgba(239,68,68,0.3)] z-10 relative";
+                    btnStyle = "bg-red-500 border-red-500 text-white shadow-xl shadow-red-500/20 z-10 relative";
                     animationClass = "animate-[shake_0.4s_ease-in-out]";
-                  } else if (isCorrectAnswer) {
-                    btnStyle = "bg-green-50 border-green-500 text-green-700 ring-2 ring-green-500 ring-offset-2";
+                  } else if (isCorrectAnswer || showAnswerHint) {
+                    btnStyle = "bg-green-50 border-green-400 text-green-700 ring-1 ring-green-400";
                   } else {
-                    btnStyle = "bg-gray-50 border-gray-100 text-gray-400 opacity-50";
+                    btnStyle = "bg-white border-gray-50 text-gray-300 opacity-60";
                   }
+                } else if (showAnswerHint && isCorrectAnswer) {
+                   btnStyle = "bg-green-50 border-green-500 text-green-700 shadow-md ring-2 ring-green-500 ring-offset-2 scale-[1.01] z-10 relative";
                 }
 
                 return (
@@ -142,42 +202,51 @@ export default function Quiz() {
                     key={opt}
                     disabled={!!selectedAnswer}
                     onClick={() => handleSelect(opt)}
-                    whileTap={!selectedAnswer ? { scale: 0.97 } : {}}
-                    className={`w-full text-left p-4 sm:p-5 rounded-2xl border-2 transition-all duration-300 flex items-center gap-4 ${btnStyle} ${animationClass}`}
+                    whileTap={!selectedAnswer ? { scale: 0.98 } : {}}
+                    className={`w-full text-left p-4 sm:p-5 rounded-2xl transition-all duration-300 flex items-center gap-4 ${btnStyle} ${animationClass}`}
                   >
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 transition-colors ${
-                      (isSelected || (selectedAnswer && isCorrectAnswer)) ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-[16px] flex-shrink-0 transition-colors shadow-sm ${
+                      (isSelected || (selectedAnswer && isCorrectAnswer) || (showAnswerHint && isCorrectAnswer)) ? 'bg-white/25 text-white shadow-none' : 'bg-gray-100 text-gray-500 border border-gray-200'
                     }`}>
-                      {opt}
+                      {((selectedAnswer || showAnswerHint) && isCorrectAnswer) ? <Check size={24} className={isSelected ? "text-white" : "text-green-500"} strokeWidth={3} /> : opt}
                     </div>
-                    <span className="font-medium flex-1 leading-snug break-words">{question[opt]}</span>
+                    <span className="font-semibold text-[15px] sm:text-[16px] flex-1 leading-snug break-words">
+                      {question[opt]}
+                    </span>
                     
-                    {selectedAnswer && isCorrectAnswer && (
-                      <Check size={20} className={isSelected ? "text-white" : "text-green-500"} strokeWidth={3} />
-                    )}
                     {selectedAnswer && isSelected && !isCorrectAnswer && (
-                      <X size={20} className="text-white" strokeWidth={3} />
+                      <X size={24} className="text-white shrink-0" strokeWidth={3} />
                     )}
                   </motion.button>
                 );
               })}
+
+              {!selectedAnswer && !showAnswerHint && (
+                <button 
+                  onClick={() => setShowAnswerHint(true)} 
+                  className="mt-6 w-full py-4 rounded-2xl bg-blue-50/70 text-blue-600 font-extrabold text-[15px] active:bg-blue-100 transition-colors border border-blue-100 flex justify-center items-center gap-2"
+                >
+                  Cevabı Gör
+                </button>
+              )}
             </div>
           </motion.div>
         </AnimatePresence>
       </div>
 
+      {/* Sticky Next Button */}
       <AnimatePresence>
         {selectedAnswer && (
           <motion.div 
             initial={{ y: 150 }}
             animate={{ y: 0 }}
             exit={{ y: 150 }}
-            transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-xl border-t border-gray-200 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] pb-safe z-50 max-w-xl mx-auto"
+            transition={{ type: "spring", stiffness: 450, damping: 30 }}
+            className="absolute bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-xl border-t border-gray-100 shadow-[0_-15px_40px_rgba(0,0,0,0.06)] pb-safe z-50 rounded-t-[30px]"
           >
             <button
               onClick={handleNext}
-              className="w-full bg-gray-900 text-white font-bold text-lg py-4 rounded-2xl shadow-lg hover:bg-black transition-colors"
+              className="w-full bg-gray-900 text-white font-extrabold text-[17px] py-[18px] rounded-[20px] shadow-xl shadow-gray-900/20 active:scale-[0.98] transition-all"
             >
               {currentIndex < questions.length - 1 ? "Sonraki Soru" : "Testi Bitir"}
             </button>

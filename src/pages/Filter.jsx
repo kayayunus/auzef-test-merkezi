@@ -12,6 +12,7 @@ export default function Filter() {
   const [selectedSinav, setSelectedSinav] = useState('Hepsi');
   const [questionCount, setQuestionCount] = useState(20);
   const [orderMode, setOrderMode] = useState('Sıralı');
+  const [isStudyMode, setIsStudyMode] = useState(false);
 
   const courseQuestions = useMemo(() => {
     if (!questions) return [];
@@ -54,13 +55,13 @@ export default function Filter() {
       return;
     }
 
-    navigate('/quiz', { state: { questions: finalQuestions, ders, quizType: 'new' } });
+    navigate('/quiz', { state: { questions: finalQuestions, ders, quizType: 'new', isStudyMode } });
   };
 
   if (loading) return null;
 
   return (
-    <div className="p-6 max-w-lg mx-auto">
+    <div className="p-6 max-w-lg mx-auto pb-32">
       <div className="flex items-center gap-4 mb-8 mt-4">
         <button 
           onClick={() => navigate(-1)}
@@ -82,6 +83,22 @@ export default function Filter() {
         </div>
 
         <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">Çalışma Modu</label>
+            <div className="flex items-center justify-between gap-3 bg-white/50 p-4 rounded-2xl border border-gray-100 shadow-sm">
+               <div>
+                <p className="text-[15px] font-bold text-gray-900">Cevapları Göster</p>
+                <p className="text-xs font-medium text-gray-500 mt-0.5">Doğru şıklar işaretli olarak gelir</p>
+              </div>
+              <div 
+                onClick={() => setIsStudyMode(!isStudyMode)}
+                className={`w-14 h-8 rounded-full p-1 cursor-pointer transition-colors duration-300 ease-in-out shrink-0 ${isStudyMode ? 'bg-green-500' : 'bg-gray-300'}`}
+              >
+                <div className={`bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 ease-in-out ${isStudyMode ? 'translate-x-6' : 'translate-x-0'}`}></div>
+              </div>
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-3">Yıl</label>
             <div className="flex flex-wrap gap-2">

@@ -138,10 +138,10 @@ export default function Quiz() {
         </button>
         <div className="flex-1 pr-2">
           <div className="flex justify-between items-center mb-2">
-            <span className="bg-auzef text-white text-[11px] font-black px-3 py-1 rounded-full shadow-sm tracking-wide">
+            <span className="bg-auzef text-white text-[11px] font-black px-3 py-1 rounded-full shadow-sm tracking-wide shrink-0">
               SORU {currentIndex + 1} / {questions.length}
             </span>
-            <span className="text-gray-600 text-[13px] font-bold truncate ml-2 max-w-[160px]">{ders}</span>
+            <span className="text-gray-600 text-[13px] font-bold truncate ml-2 max-w-[140px]">{ders}</span>
           </div>
           <div className="w-full bg-gray-200/60 rounded-full h-1.5 overflow-hidden">
             <motion.div 
@@ -154,8 +154,8 @@ export default function Quiz() {
         </div>
       </div>
 
-      {/* Main Content Area - Scrollable */}
-      <div className="flex-1 px-4 pt-6 pb-32 flex flex-col relative z-0 overflow-y-auto hide-scrollbar">
+      {/* Main Content Area - Scrollable but highly compacted */}
+      <div className="flex-1 px-4 py-4 flex flex-col relative z-0 overflow-hidden hide-scrollbar">
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.div
             key={currentIndex}
@@ -163,17 +163,17 @@ export default function Quiz() {
             animate={{ x: 0, opacity: 1, scale: 1 }}
             exit={{ x: '-100%', opacity: 0, scale: 0.98 }}
             transition={{ type: 'spring', stiffness: 350, damping: 35 }}
-            className="flex flex-col w-full"
+            className="flex flex-col w-full h-full justify-center"
           >
             {/* Question Box */}
-            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-[0_2px_15px_rgba(0,0,0,0.03)] border border-gray-100 mb-6 border-b-4">
-              <h2 className="text-[1.15rem] sm:text-xl font-bold text-gray-800 leading-relaxed font-sans">
+            <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-[0_2px_15px_rgba(0,0,0,0.03)] border border-gray-100 mb-4 border-b-4 flex-shrink min-h-[80px] flex items-center justify-center">
+              <h2 className="text-[clamp(0.9rem,2.8vh,1.15rem)] font-bold text-gray-800 leading-snug font-sans text-center">
                 {question.soru}
               </h2>
             </div>
 
             {/* Options */}
-            <div className="space-y-4 w-full">
+            <div className="space-y-2.5 w-full flex-shrink-0">
               {options.map((opt) => {
                 const isSelected = selectedAnswer === opt;
                 const isCorrectAnswer = opt === question.cevap;
@@ -203,14 +203,14 @@ export default function Quiz() {
                     disabled={!!selectedAnswer}
                     onClick={() => handleSelect(opt)}
                     whileTap={!selectedAnswer ? { scale: 0.98 } : {}}
-                    className={`w-full text-left p-4 sm:p-5 rounded-2xl transition-all duration-300 flex items-center gap-4 ${btnStyle} ${animationClass}`}
+                    className={`w-full text-left py-3 px-4 sm:py-3.5 sm:px-4 rounded-2xl transition-all duration-300 flex items-center gap-3 ${btnStyle} ${animationClass}`}
                   >
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-[16px] flex-shrink-0 transition-colors shadow-sm ${
+                    <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-[15px] flex-shrink-0 transition-colors shadow-sm ${
                       (isSelected || (selectedAnswer && isCorrectAnswer) || (showAnswerHint && isCorrectAnswer)) ? 'bg-white/25 text-white shadow-none' : 'bg-gray-100 text-gray-500 border border-gray-200'
                     }`}>
-                      {((selectedAnswer || showAnswerHint) && isCorrectAnswer) ? <Check size={24} className={isSelected ? "text-white" : "text-green-500"} strokeWidth={3} /> : opt}
+                      {((selectedAnswer || showAnswerHint) && isCorrectAnswer) ? <Check size={20} className={isSelected ? "text-white" : "text-green-500"} strokeWidth={3} /> : opt}
                     </div>
-                    <span className="font-semibold text-[15px] sm:text-[16px] flex-1 leading-snug break-words">
+                    <span className="font-semibold text-[14px] sm:text-[15px] flex-1 leading-snug break-words">
                       {question[opt]}
                     </span>
                     
@@ -236,17 +236,17 @@ export default function Quiz() {
 
       {/* Sticky Next Button */}
       <AnimatePresence>
-        {selectedAnswer && (
+        {(selectedAnswer || isStudyMode) && (
           <motion.div 
             initial={{ y: 150 }}
             animate={{ y: 0 }}
             exit={{ y: 150 }}
             transition={{ type: "spring", stiffness: 450, damping: 30 }}
-            className="absolute bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-xl border-t border-gray-100 shadow-[0_-15px_40px_rgba(0,0,0,0.06)] pb-safe z-50 rounded-t-[30px]"
+            className={`absolute bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-xl border-t border-gray-100 shadow-[0_-15px_40px_rgba(0,0,0,0.06)] pb-safe z-50 rounded-t-[30px] ${isStudyMode && !selectedAnswer ? 'py-3' : 'py-4'}`}
           >
             <button
               onClick={handleNext}
-              className="w-full bg-gray-900 text-white font-extrabold text-[17px] py-[18px] rounded-[20px] shadow-xl shadow-gray-900/20 active:scale-[0.98] transition-all"
+              className="w-full bg-gray-900 text-white font-extrabold text-[16px] py-[14px] rounded-[16px] shadow-xl shadow-gray-900/20 active:scale-[0.98] transition-all"
             >
               {currentIndex < questions.length - 1 ? "Sonraki Soru" : "Testi Bitir"}
             </button>

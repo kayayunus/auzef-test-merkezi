@@ -129,20 +129,20 @@ export default function Quiz() {
         )}
       </AnimatePresence>
 
-      {/* Header */}
-      <div className="px-3 py-2 sm:px-4 sm:py-3 flex-none shrink-0 relative z-10 flex items-center gap-3 sm:gap-4 bg-white/60 backdrop-blur-md border-b border-gray-100">
+      {/* Header: 8% */}
+      <div className="h-[8dvh] px-3 sm:px-4 flex-none shrink-0 relative z-10 flex items-center gap-3 sm:gap-4 bg-white/60 backdrop-blur-md border-b border-gray-100 overflow-hidden">
         <button 
           onClick={handleExit} 
-          className="p-2.5 bg-white rounded-full text-gray-600 hover:text-red-500 hover:bg-red-50 transition-all shadow-sm"
+          className="p-2 sm:p-2.5 bg-white rounded-full text-gray-600 hover:text-red-500 hover:bg-red-50 transition-all shadow-sm shrink-0"
         >
-          <X size={20} strokeWidth={3} />
+          <X size={18} strokeWidth={3} className="sm:w-5 sm:h-5" />
         </button>
-        <div className="flex-1 pr-2">
-          <div className="flex justify-between items-center mb-2">
-            <span className="bg-auzef text-white text-[11px] font-black px-3 py-1 rounded-full shadow-sm tracking-wide shrink-0">
+        <div className="flex-1 pr-2 overflow-hidden">
+          <div className="flex justify-between items-center mb-1.5 sm:mb-2">
+            <span className="bg-auzef text-white text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full shadow-sm tracking-wide shrink-0">
               SORU {currentIndex + 1} / {questions.length}
             </span>
-            <span className="text-gray-600 text-[13px] font-bold truncate ml-2 max-w-[140px]">{ders}</span>
+            <span className="text-gray-600 text-[12px] sm:text-[13px] font-bold truncate ml-2 max-w-[120px] sm:max-w-[140px]">{ders}</span>
           </div>
           <div className="w-full bg-gray-200/60 rounded-full h-1.5 overflow-hidden">
             <motion.div 
@@ -155,8 +155,8 @@ export default function Quiz() {
         </div>
       </div>
 
-      {/* Main Content Area - Scrollable but highly compacted */}
-      <div className="flex-1 overflow-y-auto px-3 py-2 flex flex-col relative z-0 hide-scrollbar pb-32">
+      {/* Main Content Area: 75% (30% Question, 45% Options) */}
+      <div className="h-[75dvh] w-full flex flex-col overflow-hidden relative z-0">
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.div
             key={currentIndex}
@@ -164,17 +164,20 @@ export default function Quiz() {
             animate={{ x: 0, opacity: 1, scale: 1 }}
             exit={{ x: '-100%', opacity: 0, scale: 0.98 }}
             transition={{ type: 'spring', stiffness: 350, damping: 35 }}
-            className="flex flex-col w-full h-full justify-center"
+            className="flex flex-col w-full h-full"
           >
-            {/* Question Box */}
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-[0_2px_15px_rgba(0,0,0,0.03)] border border-gray-100 mb-2 sm:mb-3 border-b-4 flex-none min-h-[60px] max-h-[35vh] overflow-y-auto flex items-center justify-center hide-scrollbar">
-              <h2 className={`font-bold text-gray-800 leading-snug font-sans text-center ${question.soru.length > 300 ? 'text-[11px]' : question.soru.length > 200 ? 'text-xs' : question.soru.length > 100 ? 'text-sm' : 'text-[0.95rem] sm:text-base'}`}>
-                {question.soru}
-              </h2>
+            {/* Question Box: 30% */}
+            <div className="h-[30dvh] w-full px-3 py-2 flex-none overflow-hidden relative">
+              <div className="bg-white rounded-2xl w-full h-full p-3 sm:p-5 shadow-[0_2px_15px_rgba(0,0,0,0.03)] border border-gray-100 border-b-4 overflow-y-auto flex items-center justify-center hide-scrollbar">
+                <h2 className={`font-bold text-gray-800 leading-snug font-sans text-center ${question.soru.length > 300 ? 'text-[11px]' : question.soru.length > 200 ? 'text-xs' : question.soru.length > 100 ? 'text-[13px] sm:text-sm' : 'text-[15px] sm:text-[17px]'}`}>
+                  {question.soru}
+                </h2>
+              </div>
             </div>
 
-            {/* Options */}
-            <div className="space-y-1.5 sm:space-y-2 w-full flex-none">
+            {/* Options Area: 45% */}
+            <div className="h-[45dvh] w-full px-3 pb-2 overflow-y-auto hide-scrollbar flex-none">
+              <div className="space-y-1.5 sm:space-y-2 w-full flex-none">
               {options.map((opt) => {
                 const isSelected = selectedAnswer === opt;
                 const isCorrectAnswer = opt === question.cevap;
@@ -233,30 +236,33 @@ export default function Quiz() {
                   Cevabı Gör
                 </button>
               )}
+              </div>
             </div>
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Sticky Next Button */}
-      <AnimatePresence>
-        {(selectedAnswer || isStudyMode) && (
-          <motion.div 
-            initial={{ y: 150 }}
-            animate={{ y: 0 }}
-            exit={{ y: 150 }}
-            transition={{ type: "spring", stiffness: 450, damping: 30 }}
-            className={`absolute bottom-0 left-0 right-0 p-3 sm:p-4 bg-white/95 backdrop-blur-xl border-t border-gray-100 shadow-[0_-15px_40px_rgba(0,0,0,0.06)] flex-none pb-safe z-[60] rounded-t-[20px] sm:rounded-t-[30px]`}
-          >
-            <button
-              onClick={handleNext}
-              className="w-full bg-gray-900 text-white font-extrabold text-[16px] py-[14px] rounded-[16px] shadow-xl shadow-gray-900/20 active:scale-[0.98] transition-all"
+      {/* Sticky Next Button Area: 17% */}
+      <div className="h-[17dvh] w-full flex-none relative z-[60] bg-gray-50/50">
+        <AnimatePresence>
+          {(selectedAnswer || isStudyMode) && (
+            <motion.div 
+              initial={{ y: 150 }}
+              animate={{ y: 0 }}
+              exit={{ y: 150 }}
+              transition={{ type: "spring", stiffness: 450, damping: 30 }}
+              className="absolute inset-0 p-3 sm:p-4 bg-white/95 backdrop-blur-xl border-t border-gray-100 shadow-[0_-15px_40px_rgba(0,0,0,0.06)] flex items-center justify-center rounded-t-[20px] sm:rounded-t-[30px]"
             >
-              {currentIndex < questions.length - 1 ? "Sonraki Soru" : "Testi Bitir"}
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <button
+                onClick={handleNext}
+                className="w-full h-full max-h-[56px] sm:max-h-[60px] bg-gray-900 text-white font-extrabold text-[15px] sm:text-[16px] rounded-[16px] shadow-xl shadow-gray-900/20 active:scale-[0.98] transition-all"
+              >
+                {currentIndex < questions.length - 1 ? "Sonraki Soru" : "Testi Bitir"}
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
